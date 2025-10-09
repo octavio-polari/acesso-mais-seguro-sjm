@@ -1,0 +1,21 @@
+useEffect(() => {
+    const loadUser = async () => {
+      const storedUser = await AsyncStorage.getItem("user");
+      const storedToken = await AsyncStorage.getItem("userToken");
+
+      if (storedUser && storedToken) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      }
+      setInitializing(false);
+    };
+    loadUser();
+    
+    const enf = onAuthStateChanged(auth, async (usr) => {
+      console.log("🟢 Firebase onAuthStateChanged:", usr?.uid || "null");
+      setUser(usr);
+      setInitializing(false);
+    });
+
+    return enf;
+  }, []);

@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "acesso-mais-seguro-sjm",
+    "slug": "acesso-mais-seguro-sjm",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "acessomaissegurosjm",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sjm.ams",
+      "googleServicesFile": "./GoogleService-Info.plist"
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.sjm.ams",
+      "googleServicesFile": "./google-services.json"
+    },
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          },
+          "android": {
+            "useFrameworks": "static"
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5be16a5e-2c18-4b53-a970-743547025030"
+      }
+    },
+    "owner": "tavyzin"
+  }
+}
