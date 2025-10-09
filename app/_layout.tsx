@@ -4,6 +4,7 @@ import { ActivityIndicator, View } from "react-native";
 import { GoogleAuthProvider, onAuthStateChanged, signInWithCredential, signInWithCustomToken, User } from "firebase/auth";
 import { auth } from "./FirebaseConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import React = require("react");
 
 export default function RootLayout() {
   const [initializing, setInitializing] = useState(true);

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Image, Text, View, StyleSheet, KeyboardAvoidingView, TextInput, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './FirebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React = require('react');
 
 type MyButtonProps = {
   title: string;

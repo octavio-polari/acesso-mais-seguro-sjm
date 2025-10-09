@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { auth } from "./FirebaseConfig";
 import { signOut } from "firebase/auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React = require('react');
 // import config from "./config.json";
 
 export default function MainAppScreen() { 
@@ -133,7 +134,7 @@ export default function MainAppScreen() {
             borderWidth: 2,
             borderColor: '#00000069'
           }}
-          onPress={async (e) => {
+          onPress={async (e: any) => {
             const novosDados = { ...dados, nvl: "🟢" };
             setDados(novosDados);
             handleSubmit(novosDados);
@@ -151,7 +152,7 @@ export default function MainAppScreen() {
             borderWidth: 2,
             borderColor: '#00000069'
           }}
-          onPress={async (e) => {
+          onPress={async (e: any) => {
               const novosDados = { ...dados, nvl: "🟡" };
               setDados(novosDados);
               handleSubmit(novosDados);
@@ -171,7 +172,7 @@ export default function MainAppScreen() {
             borderWidth: 2,
             borderColor: '#00000069'
           }}
-          onPress={async (e) => {
+          onPress={async (e: any) => {
             const novosDados = { ...dados, nvl: "🟠" };
             setDados(novosDados);
             handleSubmit(novosDados);
@@ -189,7 +190,7 @@ export default function MainAppScreen() {
             borderWidth: 2,
             borderColor: '#00000069'
           }}
-          onPress={async (e) => {
+          onPress={async (e: any) => {
             const novosDados = { ...dados, nvl: "🔴" };
             setDados(novosDados);
             handleSubmit(novosDados);
