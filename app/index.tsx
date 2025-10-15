@@ -1,7 +1,7 @@
 import { Alert, Image, Text, View, StyleSheet, KeyboardAvoidingView, TextInput, ActivityIndicator, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
-import MainAppScreen from './MainAppScreen';
+import MainScreen from './MainAppScreen';
 import React, { useState, useEffect } from 'react';
 import {auth} from './FirebaseConfig';
 
@@ -29,13 +29,18 @@ export default function Index() {
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        const jsonValue = await AsyncStorage.getItem("@user");
+        const jsonValue = await AsyncStorage.getItem("@usuario");
         if (jsonValue) {
           const userData = JSON.parse(jsonValue);
           setUser(userData);
         }
+        console.log("Session Restored");
       } catch (e) {
-        console.log("Failed to Restore Session: ", e);
+        if (e instanceof Error) {
+          Alert.alert("Failed to Restore Session:", e.message);
+        } else {
+          Alert.alert("Failed to Restore Session:", String(e));
+        }
       } finally {
         setLoading(false);
       }
@@ -48,11 +53,10 @@ export default function Index() {
         await AsyncStorage.setItem('@usuario', JSON.stringify(user));
         setUser(user);
       } else {
-        await AsyncStorage.removeItem('@usuario');
-        setUser(null);
+        // Alert.alert("Nenhum usuário ativo. Mantendo storage até novo login.");
       }
     });
-    
+
     return unsubscribe;
   }, []);
 
@@ -80,7 +84,7 @@ export default function Index() {
   }
 
   if (user) {
-    return <MainAppScreen />;
+    return <MainScreen />;
   }
 
   return (
