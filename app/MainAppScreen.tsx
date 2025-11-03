@@ -1,4 +1,4 @@
-import { Alert, Image, Text, View, StyleSheet, StatusBar } from 'react-native';
+import { Alert, Image, Text, View, StyleSheet, StatusBar, ToastAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SelectList } from 'react-native-dropdown-select-list';
 import { Button } from 'react-native-elements';
@@ -41,6 +41,8 @@ export default function MainAppScreen() {
   const [handleSignOut, setSignOut] = useState(false);
 
   const handleSubmit = async (nvl: string) => {
+    ToastAndroid.show('Enviando E-mail...', ToastAndroid.SHORT);
+
     if (!posto) {
       Alert.alert('Erro', 'Posto não encontrado no cadastro.');
       return;
@@ -63,6 +65,7 @@ export default function MainAppScreen() {
           message: 'Enviado com Sucesso!',
         });
         console.log('✅ E-mail Enviado!');
+        ToastAndroid.show('E-mail Enviado! ✅', ToastAndroid.SHORT);
       } else {
         throw new Error(result.message || 'Falha no envio');
       }
@@ -72,34 +75,9 @@ export default function MainAppScreen() {
         message: 'Erro no Envio!',
       });
       console.log('❌ Erro ao Enviar → ' + error);
-      // setDados({});
-      // setSelected(null);
-      // setDropdownKey(prev => prev + 1);
+      ToastAndroid.show('Erro ao Enviar! ❌', ToastAndroid.SHORT);
     }
   };
-
-  // const data = [
-  //   { key: '1', value: 'USF Vila São José' },
-  //   { key: '2', value: 'USF Vila Norma' },
-  //   { key: '3', value: 'USF Posto Alegre' },
-  //   { key: '4', value: 'USF Gato Preto' },
-  //   { key: '5', value: 'USF Parque Araruama' },
-  //   { key: '6', value: 'USF Morro das Pedras' },
-  //   { key: '7', value: 'USF Sarapuí' },
-  //   { key: '8', value: 'USF Vila Rosalí' },
-  //   { key: '9', value: 'USF Vila Jurandir' },
-  //   { key: '10', value: 'USF Vila Tiradentes' },
-  //   { key: '11', value: 'USF Coelhão' },
-  //   { key: '12', value: 'USF Coelhinho' },
-  //   { key: '13', value: 'USF Tibagi' },
-  //   { key: '14', value: 'USF Tucão' },
-  //   { key: '15', value: 'USF Parque Novo Rio' },
-  //   { key: '16', value: 'UBS José Bonifácio' },
-  //   { key: '17', value: 'UBS Guarani' },
-  //   { key: '18', value: 'Mini Posto Parque Alian' },
-  //   { key: '19', value: 'PMS Vila União' },
-  //   { key: '20', value: 'PMS Vila São João' },
-  // ];
 
   if (handleSignOut) return <Index />;
 
@@ -160,7 +138,7 @@ export default function MainAppScreen() {
             borderWidth: 2,
             borderColor: '#00000069',
           }}
-          onPress={() => handleSubmit('🟢')}
+          onPress={() => handleSubmit('🟢 Verde')}
         />
 
         {/* YELLOW BUTTON */}
@@ -174,7 +152,7 @@ export default function MainAppScreen() {
             borderWidth: 2,
             borderColor: '#00000069',
           }}
-          onPress={() => handleSubmit('🟡')}
+          onPress={() => handleSubmit('🟡 Amarelo')}
         />
       </View>
 
@@ -190,7 +168,7 @@ export default function MainAppScreen() {
             borderWidth: 2,
             borderColor: '#00000069',
           }}
-          onPress={() => handleSubmit('🟠')}
+          onPress={() => handleSubmit('🟠 Laranja')}
         />
 
         {/* RED BUTTON */}
@@ -204,7 +182,7 @@ export default function MainAppScreen() {
             borderWidth: 2,
             borderColor: '#00000069',
           }}
-          onPress={() => handleSubmit('🔴')}
+          onPress={() => handleSubmit('🔴 Vermelho')}
         />
       </View>
 
