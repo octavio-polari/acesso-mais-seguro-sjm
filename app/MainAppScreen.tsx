@@ -1,14 +1,198 @@
-import { Alert, Image, Text, View, StyleSheet, StatusBar, ToastAndroid } from 'react-native';
+import { Alert, Image, Text, View, StyleSheet, StatusBar, ToastAndroid, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SelectList } from 'react-native-dropdown-select-list';
-import { Button } from 'react-native-elements';
-import { auth, db } from './FirebaseConfig.ts';
+import { auth, db } from '../app/services/FirebaseConfig';
+import { onAuthStateChanged } from 'firebase/auth';
 import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import Index from './index.tsx';
+import Index from './index';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { Button } from '@rneui/themed';
+import SystemNavigationBar from 'react-native-system-navigation-bar';
+import { startNetworkListener } from "../app/services/networkListener";
+import { safeFetch } from '../app/services/apiClient';
+
+SystemNavigationBar.fullScreen(true);
+
+library.add(fas)
+
+type MyButtonProps = {
+  title: string;
+  onPress: () => void;
+  disabled?: boolean;
+};
 
 export default function MainAppScreen() {
+
+  const MyButtonReturn = ({ title, onPress }: MyButtonProps) => {
+    return (
+      <TouchableOpacity onPress={onPress} style={styles.btn2}>
+        <Text style={styles.buttonText2}>
+          {title}
+        </Text>
+      </TouchableOpacity>
+    );
+  }
+
+  const styles = StyleSheet.create({
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+
+    modalContainer: {
+      margin: 20,
+      backgroundColor: 'white',
+      borderRadius: 15,
+      padding: 35,
+      alignItems: 'center',
+      shadowColor: '#000000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+
+    image: {
+      top: 50,
+      width: '95%',
+      height: undefined,
+      aspectRatio: 4.25,
+      marginBottom: 100,
+      resizeMode: 'stretch',
+    },
+
+    container: {
+      flex: 1,
+      backgroundColor: '#ffff',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    form: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      margin: 10,
+      gap: 20,
+      borderRadius: 5
+    },
+
+    title: {
+      fontSize: 25,
+      fontWeight: 900,
+      top: -25,
+      color: '#005E35',
+    },
+    
+    btn: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: 25,
+      marginTop: 10,
+      backgroundColor: 'transparent',
+      borderStyle: 'solid',
+      borderColor: '#00000069',
+      borderWidth: 1,
+      borderRadius: 2,
+      width: 100,
+      height: 50
+    },
+
+    btn2: {
+      flexDirection: 'row',
+      backgroundColor: 'transparent',
+      top: 20,
+      left: -165,
+      zIndex: 10,
+      alignItems: 'center'
+    },
+
+    dropdown: {
+      fontSize: 20,
+      width: '95%',
+      zIndex: 3,
+    },
+
+    input: {
+      color: "rgba(99, 97, 97, 1)",
+      width: 225,
+      margin: 5,
+      marginBottom: 15,
+      borderWidth: 1,
+      borderRadius: 2
+    },
+
+    input2: {
+      color: "rgba(99, 97, 97, 1)",
+      width: 225,
+      margin: 5,
+      marginBottom: 15,
+      borderWidth: 0.75,
+      borderRadius: 2
+    },
+
+    obs: {
+      fontSize: 12, 
+      color: 'rgba(139, 139, 139, 0.53)', 
+      marginTop: -5, 
+      marginBottom: 10,
+      textAlign: 'center'
+    },
+
+    text: {
+      fontSize: 20,
+      padding: 0,
+      color: "rgba(99, 97, 97, 1)",
+      alignItems: "center",
+      marginBottom: 15,
+    },
+
+    text2: {
+      fontSize: 20,
+      padding: 0,
+      color: "rgba(99, 97, 97, 1)",
+      alignItems: "center"
+    },
+
+    listBox: {
+      width: 225,
+      borderColor: "rgba(99, 97, 97, 1)",
+      borderRadius: 2,
+      color: "white",
+      marginTop: 5
+    },
+
+    listBoxUn: {
+      width: 275,
+      borderColor: "rgba(99, 97, 97, 1)",
+      borderRadius: 0,
+      color: "rgba(99, 97, 97, 1)",
+    },
+
+    listInput2: {
+      color: "rgba(99, 97, 97, 1)",
+    },
+
+    buttonText: {
+      color: '#005E35'
+    },
+
+    buttonText2: {
+      color: '#005E35',
+      fontSize: 18
+    },
+  });
+
   async function handleLogout() {
     await signOut(auth);
     await AsyncStorage.removeItem('@usuario');
@@ -16,29 +200,27 @@ export default function MainAppScreen() {
   }
 
   useEffect(() => {
-    async function loadUserPosto() {
-      try {
-        const user = auth.currentUser;
-        if (!user) return;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
         const docRef = doc(db, 'usuarios', user.uid);
         const snapshot = await getDoc(docRef);
         if (snapshot.exists()) {
-          const data = snapshot.data();
-          setPosto(data.posto);
-          console.log('🏥 Posto do usuário:', data.posto);
-        } else {
-          console.warn('Usuário sem posto definido no Firestore.');
+          setPosto(snapshot.data().posto);
         }
-      } catch (err) {
-        console.log('Erro ao buscar posto:', err);
       }
-    }
-    loadUserPosto();
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    startNetworkListener();
   }, []);
 
   const [posto, setPosto] = useState<string | null>(null);
   const [status, setStatus] = useState<{ success?: boolean; message?: string }>({});
   const [handleSignOut, setSignOut] = useState(false);
+  const reqID = Math.floor(Math.random() * (99999999 - 10000000 + 1)) + 10000000;
+  const data = new Date().toLocaleString('pt-BR');
 
   const handleSubmit = async (nvl: string) => {
     ToastAndroid.show('Enviando E-mail...', ToastAndroid.SHORT);
@@ -48,17 +230,17 @@ export default function MainAppScreen() {
       return;
     }
 
-    const payload = {posto, nvl: nvl};
-
-    console.log(payload);
+    const payload = {posto, nvl: nvl, data, reqID};
+    // console.log(payload);
 
     try {
-      let response = await fetch('https://ams-backend-server.onrender.com/api/ams', {
+      let response = await safeFetch('https://ams-backend-server.onrender.com/api/ams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json;charset=utf-8' },
         body: JSON.stringify(payload),
       });
       const result = await response.json();
+      
       if (result.code == 200) {
         setStatus({
           success: true,
@@ -70,30 +252,36 @@ export default function MainAppScreen() {
         throw new Error(result.message || 'Falha no envio');
       }
     } catch (error) {
-      setStatus({
-        success: false,
-        message: 'Erro no Envio!',
-      });
-      console.log('❌ Erro ao Enviar → ' + error);
-      ToastAndroid.show('Erro ao Enviar! ❌', ToastAndroid.SHORT);
+      if (Error("Sem conexão. Requisição armazenada.")){
+        ToastAndroid.show(`${error}`, ToastAndroid.SHORT);
+      } else {
+        setStatus({
+          success: false,
+          message: 'Erro no Envio!',
+        });
+        ToastAndroid.show(`Erro ao Enviar! ❌ ${error}`, ToastAndroid.SHORT);
+      }
     }
-  };
-
+  }
+  
   if (handleSignOut) return <Index />;
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: '#ffff', alignItems: 'center',}}>
       {/* TOP SYMBOL */}
       <Image
         style={{
-          position: 'absolute',
           top: 0,
-          resizeMode: 'cover',
           width: '101%',
           height: undefined,
           aspectRatio: 10,
         }}
         source={require('./assets/SJM-TOP-SYMBOL.png')}
+      />
+
+      <MyButtonReturn
+        title={'◀ Voltar'}
+        onPress={handleLogout}
       />
 
       {/* SJM LOGO */}
@@ -102,35 +290,24 @@ export default function MainAppScreen() {
         source={require('./assets/SJM-SECRETARIA.png')}
       />
 
-      <View style={styles.btn2}>
-        <Button
-          title={'<'}
-          titleStyle={{ fontSize: 50, color: 'black' }}
-          buttonStyle={{
-            backgroundColor: '#00000002',
-            width: 90,
-            height: 90,
-            marginTop: 95,
-            // position: 'absolute'
-          }}
-          onPress={handleLogout}
-        />
-      </View>
+      <Text style={styles.title}>
+        Acesso Mais Seguro {"\n"}
 
-      <Text style={styles.titleAMS}> Acesso Mais Seguro </Text>
+        {posto ? (
+          <Text style={{ fontSize: 20-2, fontWeight: 'normal', marginTop: 10, color: '#005E35'   }}>📍 {posto}</Text>
+        ) : (
+          <Text style={{ fontSize: 15-1, fontWeight: 'normal', marginTop: 10, color: '#61616194' }}>Carregando posto...</Text>
+        )}
+      </Text>
 
-      {posto ? (
-        <Text style={{ fontSize: 20, marginTop: 10, color: '#005E35'   }}>📍 {posto}</Text>
-      ) : (
-        <Text style={{ fontSize: 15, marginTop: 10, color: '#61616194' }}>Carregando posto...</Text>
-      )}
-
-      {/* BUTTONS */}
-      <View style={styles.btn}>
+      {/* TOP BUTTONS */}
+      <View style={styles.form}>
         {/* GREEN BUTTON */}
         <Button
+          radius={'lg'}
+          type="solid"
           title=""
-          titleStyle={{ fontSize: 50, color: 'transparent' }}
+          titleStyle={{ fontSize: 10, color: '#ffffff' }}
           buttonStyle={{
             backgroundColor: '#005E35',
             width: 90,
@@ -138,27 +315,36 @@ export default function MainAppScreen() {
             borderWidth: 2,
             borderColor: '#00000069',
           }}
-          onPress={() => handleSubmit('🟢 Verde')}
-        />
+          onPress={() => handleSubmit('🟢')}
+        >
+          <FontAwesomeIcon icon="check" size={50} color='white'/>
+        </Button>
 
         {/* YELLOW BUTTON */}
         <Button
+          radius={'lg'}
+          type="solid"
           title=""
-          titleStyle={{ fontSize: 50, color: 'transparent' }}
+          titleStyle={{ fontSize: 10, color: '#ffffff' }}
           buttonStyle={{
-            backgroundColor: '#FDC806',
+            backgroundColor: '#fdc706',
             width: 90,
             height: 90,
             borderWidth: 2,
             borderColor: '#00000069',
           }}
-          onPress={() => handleSubmit('🟡 Amarelo')}
-        />
+          onPress={() => handleSubmit('🟡')}
+        >
+          <FontAwesomeIcon icon="house-medical-circle-exclamation" size={50} color='white'/>
+        </Button>
       </View>
-
-      <View style={styles.btn}>
+      
+      {/* BOTTOM BUTTONS */}
+      <View style={styles.form}>
         {/* ORANGE BUTTON */}
         <Button
+          radius={'lg'}
+          type="solid"
           title=""
           titleStyle={{ fontSize: 50, color: 'transparent' }}
           buttonStyle={{
@@ -168,13 +354,17 @@ export default function MainAppScreen() {
             borderWidth: 2,
             borderColor: '#00000069',
           }}
-          onPress={() => handleSubmit('🟠 Laranja')}
-        />
+          onPress={() => handleSubmit('🟠')}
+        >
+          <FontAwesomeIcon icon="exclamation" size={50} color='white'/>
+        </Button>
 
         {/* RED BUTTON */}
         <Button
+          radius={'lg'}
+          type="solid"
           title=""
-          titleStyle={{ fontSize: 50, color: 'transparent' }}
+          titleStyle={{ fontSize: 10, color: '#ffffff' }}
           buttonStyle={{
             backgroundColor: '#FD0606',
             width: 90,
@@ -182,8 +372,10 @@ export default function MainAppScreen() {
             borderWidth: 2,
             borderColor: '#00000069',
           }}
-          onPress={() => handleSubmit('🔴 Vermelho')}
-        />
+          onPress={() => handleSubmit('🔴')}
+        >
+          <FontAwesomeIcon icon="exclamation-triangle" size={50} color='white'/>
+        </Button>
       </View>
 
       {/* YELLOW */}
@@ -238,60 +430,7 @@ export default function MainAppScreen() {
         source={require('./assets/SJM-TOP-SYMBOL.png')}
       />
 
-      <StatusBar hidden={true} />
+    <StatusBar hidden={true}/>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  image: {
-    position: 'absolute',
-    top: 20,
-    width: '95%',
-    height: undefined,
-    aspectRatio: 4.25,
-    margin: 30,
-    resizeMode: 'stretch',
-  },
-
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  titleAMS: {
-    fontSize: 25,
-    fontWeight: 900,
-    position: 'absolute',
-    top: 220,
-    color: '#005E35',
-  },
-
-  btn: {
-    flexDirection: 'row',
-    gap: 25,
-    marginTop: 45,
-    backgroundColor: 'transparent',
-  },
-
-  btn2: {
-    flexDirection: 'row',
-    gap: 25,
-    marginTop: 45,
-    backgroundColor: 'transparent',
-    position: 'absolute',
-    top: -25,
-    left: -10,
-    zIndex: 3,
-  },
-
-  dropdown: {
-    fontSize: 20,
-    width: '95%',
-    position: 'absolute',
-    top: 275,
-    zIndex: 3,
-  },
-});

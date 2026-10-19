@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
 import MainScreen from './MainAppScreen';
 import React, { useState, useEffect } from 'react';
-import {auth} from './FirebaseConfig';
+import {auth} from './services/FirebaseConfig';
 
 type MyButtonProps = {
   title: string;
@@ -24,47 +24,30 @@ export default function Index() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const restoreSession = async () => {
-      try {
-        const jsonValue = await AsyncStorage.getItem("@usuario");
-        if (jsonValue) {
-          const userData = JSON.parse(jsonValue);
-          setUser(userData);
-        }
-        console.log("Session Restored");
-      } catch (e) {
-        if (e instanceof Error) {
-          Alert.alert("Failed to Restore Session:", e.message);
-        } else {
-          Alert.alert("Failed to Restore Session:", String(e));
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    restoreSession();
-    
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // salva no AsyncStorage
-        await AsyncStorage.setItem('@usuario', JSON.stringify(user));
-        setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        console.log("✅ Usuário detectado pelo Firebase:", firebaseUser.uid);
+        setUser(firebaseUser);
       } else {
-        // Alert.alert("Nenhum usuário ativo. Mantendo storage até novo login.");
+        console.log("❌ Nenhum usuário detectado.");
+        setUser(null);
       }
+      
+      // IMPORTANTE: Só paramos o loading APÓS o Firebase responder
+      setLoading(false); 
     });
 
     return unsubscribe;
   }, []);
 
   async function signIn() {
-    setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      setLoading(true)
+      // await AsyncStorage.setItem("@usuario", JSON.stringify(user));
+      // setLoading(true)
 
     } catch (e: any) {
       Alert.alert('Failed: ' + e.message);
@@ -170,7 +153,7 @@ export default function Index() {
         />
       
 
-        <KeyboardAvoidingView behavior='padding'>
+      <KeyboardAvoidingView behavior='padding'>
         
         <TextInput
           style={styles.input}
@@ -178,14 +161,16 @@ export default function Index() {
           onChangeText={setEmail}
           autoCapitalize='none'
           keyboardType='email-address'
-          placeholder='E-mail'
+          placeholderTextColor="rgba(139, 139, 139, 0.53)"
+          placeholder='E-mail...'
         />
 
         <TextInput
           style={styles.input}
           value={password}
           onChangeText={setPassword}
-          placeholder='Senha'
+          placeholder='Senha...'
+          placeholderTextColor="rgba(139, 139, 139, 0.53)"
           secureTextEntry
         />
 
@@ -254,15 +239,12 @@ const styles = StyleSheet.create({
   },
 
   input: {
-    color: '#000000',
-    fontSize: 15,
-    width: 300,
-    height: 65,
-    padding: 10,
-    margin: 10,
-    borderStyle: 'solid',
-    borderColor: '#00000069',
+    color: "rgba(99, 97, 97, 1)",
+    width: 225,
+    margin: 5,
+    marginBottom: 15,
     borderWidth: 1,
     borderRadius: 2,
+    borderColor: "rgba(99, 97, 97, 1)",
   },
 })
